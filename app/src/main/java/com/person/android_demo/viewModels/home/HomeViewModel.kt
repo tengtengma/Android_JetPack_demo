@@ -1,14 +1,15 @@
 package com.person.android_demo.viewModels.home
 
-import androidx.compose.runtime.mutableStateListOf
-import com.person.android_demo.models.home.HomeModel
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.person.android_demo.models.home.HomeModel
+import com.person.android_demo.models.home.HomeDetailModel
 import androidx.lifecycle.ViewModel
 
 class HomeViewModel: ViewModel() {
     var newsList = mutableStateListOf<HomeModel>()
-
     init {
         getNewsRequest()
     }
@@ -29,5 +30,21 @@ class HomeViewModel: ViewModel() {
                 url = "https://developer.android.com"
             )
         )
+    }
+
+    fun selectedNews(homeModel: HomeModel, onNavigate: (HomeDetailModel) -> Unit){
+        println("触发选中新闻: ${homeModel.title}")
+        val detailModel = HomeDetailModel(
+            id = homeModel.id,
+            title = homeModel.title,
+            url = homeModel.url
+        )
+        onNavigate(detailModel)
+    }
+
+    fun logout(onLogoutComplete: () -> Unit) {
+        println("正在执行退出登录清理逻辑...")
+        newsList.clear()
+        onLogoutComplete()
     }
 }
