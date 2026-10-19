@@ -43,8 +43,8 @@ fun AuthView(viewModel: AuthViewModel, modifier: Modifier = Modifier) {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        //password input
 
+        //password input
         OutlinedTextField(
             value = viewModel.password,
             onValueChange = { viewModel.password = it },
