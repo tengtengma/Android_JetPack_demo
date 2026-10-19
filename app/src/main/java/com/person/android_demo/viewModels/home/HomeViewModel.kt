@@ -44,7 +44,6 @@ class HomeViewModel: ViewModel() {
 
     fun logout(onLogoutComplete: () -> Unit) {
         println("正在执行退出登录清理逻辑...")
-        newsList.clear()
         onLogoutComplete()
     }
 }
