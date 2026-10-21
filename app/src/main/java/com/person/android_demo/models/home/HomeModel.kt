@@ -1,7 +1,7 @@
 package com.person.android_demo.models.home
 
 data class HomeModel(
-    val id: String,
+    val id: Int,
     val author: String,
     val title: String,
     val summary: String,

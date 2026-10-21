@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import com.person.android_demo.viewModels.home.HomeDetailViewModel
 
@@ -28,7 +29,7 @@ fun HomeDetailView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = viewModel.title) },
+                title = { Text(text = viewModel.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")

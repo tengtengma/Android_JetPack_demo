@@ -22,10 +22,6 @@ import com.person.android_demo.viewModels.auth.AuthViewModel
 @Composable
 fun AuthView(viewModel: AuthViewModel, modifier: Modifier = Modifier) {
 
-    LaunchedEffect(Unit) {
-        viewModel.checkLoginState()
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()

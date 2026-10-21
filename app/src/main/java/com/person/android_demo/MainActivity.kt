@@ -1,37 +1,57 @@
 package com.person.android_demo
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.person.android_demo.ui.theme.Android_demoTheme
+import com.person.android_demo.utils.data.UserPreferencesManager
+import com.person.android_demo.utils.network.core.NetworkConfiguration
+import com.person.android_demo.utils.network.di.AppContainer
+import com.person.android_demo.utils.network.feautures.services.auth.AuthService
 import com.person.android_demo.viewModels.auth.AuthViewModel
 import com.person.android_demo.viewModels.home.HomeDetailViewModel
 import com.person.android_demo.viewModels.home.HomeViewModel
 import com.person.android_demo.views.auth.AuthView
 import com.person.android_demo.views.home.HomeDetailView
 import com.person.android_demo.views.home.HomeView
-import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
 
-    private val authViewModel: AuthViewModel by viewModels()
+    //lateinit延迟初始化 只是暂时为空 后续肯定不为空
+    lateinit var container: AppContainer
+        private set
+    private val authViewModel: AuthViewModel by lazy {
+        container.authViewModel
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val  config = NetworkConfiguration(
+            baseUrl = "http://192.168.68.55:5177",
+            requestTimeout = 30L,
+            responseTimeout = 60L
+        )
+        container = AppContainer(application = application, configuration = config)
+
         enableEdgeToEdge()
         setContent {
             Android_demoTheme {
@@ -39,7 +59,12 @@ class MainActivity : ComponentActivity() {
 
                     if (authViewModel.isLoggedIn) {
                         HomeNavHost(
-                            onLogout = { authViewModel.isLoggedIn = false },
+                            container = container,
+                            onLogout = {
+                                container.homeViewModel.logout {
+                                    authViewModel.isLoggedIn = false // 这里的回调只负责最终的路由切换/状态标记
+                                }
+                            },
                             modifier = Modifier.padding(innerPadding)
                         )
                     } else {
@@ -55,12 +80,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeNavHost( onLogout: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeNavHost(container: AppContainer, onLogout: () -> Unit, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home_list", modifier = modifier) {
         composable("home_list") {
-            val homeViewModel: HomeViewModel = viewModel()
+            //val homeViewModel: HomeViewModel = viewModel()
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = viewModelFactory {
+                    initializer {
+                        HomeViewModel(
+                            prefsManager = container.prefsManager,
+                            newsService = container.newsService
+                        )
+                    }
+                }
+            )
             HomeView(
                 viewModel = homeViewModel,
                 onItemClick = { detailModel ->
@@ -85,7 +120,9 @@ fun HomeNavHost( onLogout: () -> Unit, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
+    val context = LocalContext.current.applicationContext as? Application
+        ?: Application()
     Android_demoTheme {
-        AuthView(viewModel = AuthViewModel())
+        AuthView(viewModel = AuthViewModel(null as UserPreferencesManager, null as Any as AuthService))
     }
 }
